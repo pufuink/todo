@@ -715,6 +715,32 @@ saveTodosToStorage();
 let stopwatchTime = 0;
 let isStopwatchRunning = false;
 
+function saveStopwatchState() {
+  localStorage.setItem('stopwatchTime', stopwatchTime);
+  localStorage.setItem('isStopwatchRunning', isStopwatchRunning);
+}
+
+function loadStopwatchState() {
+  const savedTime = localStorage.getItem('stopwatchTime');
+  const savedRunning = localStorage.getItem('isStopwatchRunning');
+
+  stopwatchTime = savedTime ? parseInt(savedTime) : 0;
+  isStopwatchRunning = savedRunning === 'true';
+
+  updateStopwatchDisplay();
+
+  if (isStopwatchRunning) {
+    toggleStopwatch(document.getElementById('stopwatch-toggle-btn'));
+  }
+}
+
+function updateStopwatchDisplay() {
+  const hours = String(Math.floor(stopwatchTime / 3600)).padStart(2, '0');
+  const minutes = String(Math.floor((stopwatchTime % 3600) / 60)).padStart(2, '0');
+  const seconds = String(stopwatchTime % 60).padStart(2, '0');
+  document.getElementById('stopwatch-display').textContent = `${minutes}:${seconds}`;
+}
+
 function toggleStopwatch(button) {
   if (!isStopwatchRunning) {
     // 시작
@@ -725,14 +751,36 @@ function toggleStopwatch(button) {
       const minutes = String(Math.floor(stopwatchTime / 60)).padStart(2, '0');
       const seconds = String(stopwatchTime % 60).padStart(2, '0');
       document.getElementById('stopwatch-display').textContent = `${minutes}:${seconds}`;
+saveStopwatchState();
     }, 1000);
   } else {
-    // 정지
     isStopwatchRunning = false;
     button.textContent = '시작';
     clearInterval(stopwatchInterval);
     stopwatchInterval = null;
+      saveStopwatchState(); 
   }
+}
+
+function loadStopwatchState() {
+  const savedTime = localStorage.getItem('stopwatchTime');
+  const savedRunning = localStorage.getItem('isStopwatchRunning');
+
+  if (savedTime) stopwatchTime = parseInt(savedTime);
+  if (savedRunning === 'true') {
+    isStopwatchRunning = true;
+    toggleStopwatch(document.getElementById('stopwatch-toggle-btn'));
+  } else {
+    isStopwatchRunning = false;
+    const minutes = String(Math.floor(stopwatchTime / 60)).padStart(2, '0');
+    const seconds = String(stopwatchTime % 60).padStart(2, '0');
+    document.getElementById('stopwatch-display').textContent = `${minutes}:${seconds}`;
+  }
+}
+
+function saveStopwatchState() {
+  localStorage.setItem('stopwatchTime', stopwatchTime);
+  localStorage.setItem('isStopwatchRunning', isStopwatchRunning);
 }
 
 function resetStopwatch() {
@@ -743,14 +791,40 @@ function resetStopwatch() {
   document.getElementById('stopwatch-display').textContent = '00:00';
   document.getElementById('stopwatch-toggle-btn').textContent = '시작';
 }
+ saveStopwatchState();
     // 타이머 부분 (기본 구조만)
    let timerInterval;
 let timerTime = 0;
 let isTimerRunning = false;
 
+function saveTimerState() {
+  localStorage.setItem('timerTime', timerTime);
+  localStorage.setItem('isTimerRunning', isTimerRunning);
+}
+
+function loadTimerState() {
+  const savedTime = localStorage.getItem('timerTime');
+  const savedRunning = localStorage.getItem('isTimerRunning');
+
+  timerTime = savedTime ? parseInt(savedTime) : 0;
+  isTimerRunning = savedRunning === 'true';
+
+  updateTimerDisplay();
+
+  if (isTimerRunning && timerTime > 0) {
+    toggleTimer(document.getElementById('timer-toggle-btn'));
+  }
+}
+
+function updateTimerDisplay() {
+  const h = String(Math.floor(timerTime / 3600)).padStart(2, '0');
+  const m = String(Math.floor((timerTime % 3600) / 60)).padStart(2, '0');
+  const s = String(timerTime % 60).padStart(2, '0');
+  document.getElementById('timer-editable').textContent = `${h}:${m}:${s}`;
+}
+
 function toggleTimer(button) {
   if (!isTimerRunning) {
-    // 시작
     if (timerTime <= 0) return;
     isTimerRunning = true;
     button.textContent = '정지';
@@ -761,13 +835,10 @@ function toggleTimer(button) {
         return;
       }
       timerTime--;
-      const hours = String(Math.floor(timerTime / 3600)).padStart(2, '0');
-      const minutes = String(Math.floor((timerTime % 3600) / 60)).padStart(2, '0');
-      const seconds = String(timerTime % 60).padStart(2, '0');
-      document.getElementById('timer-editable').textContent = `${hours}:${minutes}:${seconds}`;
+      updateTimerDisplay();
+      saveTimerState();
     }, 1000);
   } else {
-    // 정지
     stopTimer(button);
   }
 }
@@ -777,12 +848,14 @@ function stopTimer(button) {
   timerInterval = null;
   isTimerRunning = false;
   if (button) button.textContent = '시작';
+  saveTimerState();
 }
 
 function resetTimer() {
   stopTimer(document.getElementById('timer-toggle-btn'));
   timerTime = 0;
-  document.getElementById('timer-editable').textContent = '00:00:00';
+  updateTimerDisplay();
+  saveTimerState();
 }
 
 function editTimer() {
@@ -859,6 +932,8 @@ function editTimer() {
     loadTodosFromStorage(); // 
 renderWeekView();
 renderTodosForDate(currentDate);
+loadStopwatchStat();
+loadTimerState();
     document.getElementById('timer-editable').addEventListener('blur', () => {
   parseTimerInput(document.getElementById('timer-editable').textContent);
 });
