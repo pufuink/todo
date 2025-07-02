@@ -477,6 +477,16 @@
 
     // 날짜별 투두 저장 객체
     const todosByDate = {};
+function saveTodosToStorage() {
+  localStorage.setItem('todos', JSON.stringify(todosByDate));
+}
+
+function loadTodosFromStorage() {
+  const saved = localStorage.getItem('todos');
+  if (saved) {
+    Object.assign(todosByDate, JSON.parse(saved));
+  }
+}
 
     // 날짜 문자열 key 생성 (YYYY-MM-DD)
     function getDateKey(date) {
@@ -505,8 +515,9 @@
         // 클릭 이벤트 - 날짜 선택 및 To-Do 렌더링
         div.addEventListener('click', () => {
           currentDate = new Date(date);
-          renderWeekView();
-          renderTodosForDate(currentDate);
+         loadTodosFromStorage();
+renderWeekView();
+renderTodosForDate(currentDate);
         });
 
         // 오늘 날짜 강조
@@ -652,6 +663,7 @@
     function addTodo(type) {
       const input = document.getElementById('todo-' + type);
       const value = input.value.trim();
+saveTodosToStorage();
       if (!value) return;
 
       const key = getDateKey(currentDate);
@@ -675,6 +687,7 @@
           return li.querySelector('.todo-text').textContent;
         });
       });
+saveTodosToStorage();
     }
 
     // 제목 수정 함수 (기존 코드에서 사용됨)
@@ -841,8 +854,9 @@ function editTimer() {
 }
 
     // 초기 렌더링
-    renderWeekView();
-    renderTodosForDate(currentDate);
+    loadTodosFromStorage(); // 
+renderWeekView();
+renderTodosForDate(currentDate);
     document.getElementById('timer-editable').addEventListener('blur', () => {
   parseTimerInput(document.getElementById('timer-editable').textContent);
 });
