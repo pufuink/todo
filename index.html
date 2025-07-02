@@ -364,6 +364,7 @@
       margin-left: 5px;
       cursor: pointer;
       user-select: none;
+      font-size: 5px;
     }
     .todo-done {
       text-decoration: line-through;
@@ -412,7 +413,7 @@
     text-align: center;
     width: 75px;
     margin: 5px auto;
-    font-size: 1em;
+    font-size: 0.5em;
 
   </style>
 </head>
@@ -719,20 +720,6 @@ function saveStopwatchState() {
   localStorage.setItem('isStopwatchRunning', isStopwatchRunning);
 }
 
-function loadStopwatchState() {
-  const savedTime = localStorage.getItem('stopwatchTime');
-  const savedRunning = localStorage.getItem('isStopwatchRunning');
-
-  stopwatchTime = savedTime ? parseInt(savedTime) : 0;
-  isStopwatchRunning = savedRunning === 'true';
-
-  updateStopwatchDisplay();
-
-  if (isStopwatchRunning) {
-    toggleStopwatch(document.getElementById('stopwatch-toggle-btn'));
-  }
-}
-
 function updateStopwatchDisplay() {
   const hours = String(Math.floor(stopwatchTime / 3600)).padStart(2, '0');
   const minutes = String(Math.floor((stopwatchTime % 3600) / 60)).padStart(2, '0');
@@ -928,13 +915,17 @@ function editTimer() {
 }
 
     // 초기 렌더링
-    loadTodosFromStorage();
-    renderWeekView();
-    renderTodosForDate(currentDate);
-   loadStopwatchState();
-   loadTimerState();
-    document.getElementById('timer-editable').addEventListener('blur', () => {
-  parseTimerInput(document.getElementById('timer-editable').textContent);
+document.addEventListener('DOMContentLoaded', () => {
+  loadTodosFromStorage();
+  renderWeekView();
+  renderTodosForDate(currentDate);
+  loadStopwatchState();  // 스톱워치 상태 복구
+  loadTimerState();      // 타이머 상태 복구
+
+  // 타이머 시간 텍스트 수정 감지
+  document.getElementById('timer-editable').addEventListener('blur', () => {
+    parseTimerInput(document.getElementById('timer-editable').textContent);
+  });
 });
 
   if ('serviceWorker' in navigator) {
