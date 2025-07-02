@@ -752,15 +752,20 @@ function loadStopwatchState() {
   const savedTime = localStorage.getItem('stopwatchTime');
   const savedRunning = localStorage.getItem('isStopwatchRunning');
 
-  if (savedTime) stopwatchTime = parseInt(savedTime);
-  if (savedRunning === 'true') {
-    isStopwatchRunning = true;
-    toggleStopwatch(document.getElementById('stopwatch-toggle-btn'));
+  stopwatchTime = savedTime ? parseInt(savedTime) : 0;
+  isStopwatchRunning = savedRunning === 'true';
+
+  updateStopwatchDisplay();
+
+  if (isStopwatchRunning) {
+    document.getElementById('stopwatch-toggle-btn').textContent = '정지';
+    stopwatchInterval = setInterval(() => {
+      stopwatchTime++;
+      updateStopwatchDisplay();
+      saveStopwatchState();
+    }, 1000);
   } else {
-    isStopwatchRunning = false;
-    const minutes = String(Math.floor(stopwatchTime / 60)).padStart(2, '0');
-    const seconds = String(stopwatchTime % 60).padStart(2, '0');
-    document.getElementById('stopwatch-display').textContent = `${minutes}:${seconds}`;
+    document.getElementById('stopwatch-toggle-btn').textContent = '시작';
   }
 }
 
@@ -789,11 +794,18 @@ function saveTimerState() {
 }
 
 function loadTimerState() {
-  const savedTime = localStorage.getItem('timerTime');
   const savedRunning = localStorage.getItem('isTimerRunning');
+  const savedEndTime = localStorage.getItem('timerEndTime');
 
-  timerTime = savedTime ? parseInt(savedTime) : 0;
   isTimerRunning = savedRunning === 'true';
+
+  if (isTimerRunning && savedEndTime) {
+    const remaining = Math.floor((parseInt(savedEndTime) - Date.now()) / 1000);
+    timerTime = remaining > 0 ? remaining : 0;
+  } else {
+    const savedTime = localStorage.getItem('timerTime');
+    timerTime = savedTime ? parseInt(savedTime) : 0;
+  }
 
   updateTimerDisplay();
 
@@ -801,7 +813,6 @@ function loadTimerState() {
     toggleTimer(document.getElementById('timer-toggle-btn'));
   }
 }
-
 function updateTimerDisplay() {
   const h = String(Math.floor(timerTime / 3600)).padStart(2, '0');
   const m = String(Math.floor((timerTime % 3600) / 60)).padStart(2, '0');
@@ -814,6 +825,8 @@ function toggleTimer(button) {
     if (timerTime <= 0) return;
     isTimerRunning = true;
     button.textContent = '정지';
+    const endTime = Date.now() + timerTime * 1000;
+   localStorage.setItem('timerEndTime', endTime);
     timerInterval = setInterval(() => {
       if (timerTime <= 0) {
         stopTimer(button);
@@ -835,6 +848,7 @@ function stopTimer(button) {
   isTimerRunning = false;
   if (button) button.textContent = '시작';
   saveTimerState();
+  localStorage.removeItem('timerEndTime');
 }
 
 function resetTimer() {
@@ -842,6 +856,7 @@ function resetTimer() {
   timerTime = 0;
   updateTimerDisplay();
   saveTimerState();
+  localStorage.removeItem('timerEndTime');
 }
 
 function editTimer() {
