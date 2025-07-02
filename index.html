@@ -665,7 +665,6 @@ renderTodosForDate(currentDate);
     function addTodo(type) {
       const input = document.getElementById('todo-' + type);
       const value = input.value.trim();
-saveTodosToStorage();
       if (!value) return;
 
       const key = getDateKey(currentDate);
@@ -675,8 +674,8 @@ saveTodosToStorage();
 
       todosByDate[key][type].push(value);
       addTodoToDOM(type, value);
-
       input.value = '';
+      saveTodosFromDOM();
     }
 
     function saveTodosFromDOM() {
@@ -689,7 +688,7 @@ saveTodosToStorage();
           return li.querySelector('.todo-text').textContent;
         });
       });
-saveTodosToStorage();
+      saveTodosToStorage();
     }
 
     // 제목 수정 함수 (기존 코드에서 사용됨)
@@ -929,11 +928,11 @@ function editTimer() {
 }
 
     // 초기 렌더링
-    loadTodosFromStorage(); // 
-renderWeekView();
-renderTodosForDate(currentDate);
-loadStopwatchStat();
-loadTimerState();
+    loadTodosFromStorage();
+    renderWeekView();
+    renderTodosForDate(currentDate);
+   loadStopwatchStat();
+   loadTimerState();
     document.getElementById('timer-editable').addEventListener('blur', () => {
   parseTimerInput(document.getElementById('timer-editable').textContent);
 });
