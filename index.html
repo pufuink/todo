@@ -934,10 +934,10 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTodosFromStorage();
   renderWeekView();
   renderTodosForDate(currentDate);
-  loadStopwatchState(); 
-  loadTimerState(); 
+  loadStopwatchState();  // 스톱워치 상태 복구
+  loadTimerState();      // 타이머 상태 복구
 
-  
+  // 타이머 시간 텍스트 수정 감지
   document.getElementById('timer-editable').addEventListener('blur', () => {
     parseTimerInput(document.getElementById('timer-editable').textContent);
   });
