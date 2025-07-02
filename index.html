@@ -342,7 +342,7 @@
       margin: 7px 25px;
       padding: 4px 8px;
       background: #ADB2D4;
-      font-size: 7px;
+      font-size: 5px;
       border-radius: 3px;
     }
     ul {
@@ -931,7 +931,7 @@ function editTimer() {
     loadTodosFromStorage();
     renderWeekView();
     renderTodosForDate(currentDate);
-   loadStopwatchStat();
+   loadStopwatchState();
    loadTimerState();
     document.getElementById('timer-editable').addEventListener('blur', () => {
   parseTimerInput(document.getElementById('timer-editable').textContent);
