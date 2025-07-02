@@ -637,6 +637,7 @@ renderTodosForDate(currentDate);
           textSpan.textContent = edit.value;
           edit.replaceWith(textSpan);
           saveTodosFromDOM();
+          saveTodosToStorage();
         };
         edit.onkeydown = (e) => {
           if (e.key === 'Enter') edit.blur();
@@ -651,6 +652,7 @@ renderTodosForDate(currentDate);
       delBtn.onclick = () => {
         li.remove();
         saveTodosFromDOM();
+        saveTodosToStorage();
       };
 
       li.appendChild(checkbox);
