@@ -472,6 +472,12 @@
     </div>
   </div>
 
+<div id="timer-alert" style="display:none; position: fixed; top: 30px; left: 50%; transform: translateX(-50%);
+  background-color: #ADB2D4; color: white; padding: 15px 25px; border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); font-size: 16px; z-index: 1000;">
+  ⏳ 타이머가 종료되었습니다. 
+</div>
+
   <script>
     let currentDate = new Date();
     let monthViewOn = false;
@@ -714,10 +720,16 @@ renderTodosForDate(currentDate);
     let stopwatchInterval;
 let stopwatchTime = 0;
 let isStopwatchRunning = false;
+let stopwatchStartTimestamp = null;
 
 function saveStopwatchState() {
   localStorage.setItem('stopwatchTime', stopwatchTime);
   localStorage.setItem('isStopwatchRunning', isStopwatchRunning);
+  if (stopwatchStartTimestamp !== null) {
+    localStorage.setItem('stopwatchStartTimestamp', stopwatchStartTimestamp);
+  } else {
+    localStorage.removeItem('stopwatchStartTimestamp');
+  }
 }
 
 function updateStopwatchDisplay() {
@@ -729,49 +741,54 @@ function updateStopwatchDisplay() {
 
 function toggleStopwatch(button) {
   if (!isStopwatchRunning) {
-    // 시작
     isStopwatchRunning = true;
+    stopwatchStartTimestamp = Date.now() - stopwatchTime * 1000;
+
     button.textContent = '정지';
     stopwatchInterval = setInterval(() => {
-      stopwatchTime++;
-      const minutes = String(Math.floor(stopwatchTime / 60)).padStart(2, '0');
-      const seconds = String(stopwatchTime % 60).padStart(2, '0');
-      document.getElementById('stopwatch-display').textContent = `${minutes}:${seconds}`;
-saveStopwatchState();
+      stopwatchTime = Math.floor((Date.now() - stopwatchStartTimestamp) / 1000);
+      updateStopwatchDisplay();
+      saveStopwatchState();
     }, 1000);
   } else {
     isStopwatchRunning = false;
-    button.textContent = '시작';
     clearInterval(stopwatchInterval);
     stopwatchInterval = null;
-      saveStopwatchState(); 
+    stopwatchTime = Math.floor((Date.now() - stopwatchStartTimestamp) / 1000);
+    stopwatchStartTimestamp = null;
+
+    button.textContent = '시작';
+    updateStopwatchDisplay();
+    saveStopwatchState();
   }
 }
 
 function loadStopwatchState() {
   const savedTime = localStorage.getItem('stopwatchTime');
   const savedRunning = localStorage.getItem('isStopwatchRunning');
+  const savedStart = localStorage.getItem('stopwatchStartTimestamp');
 
   stopwatchTime = savedTime ? parseInt(savedTime) : 0;
   isStopwatchRunning = savedRunning === 'true';
+  stopwatchStartTimestamp = savedStart ? parseInt(savedStart) : null;
 
-  updateStopwatchDisplay();
+  if (isStopwatchRunning && stopwatchStartTimestamp !== null) {
+    // 경과 시간 재계산
+    stopwatchTime = Math.floor((Date.now() - stopwatchStartTimestamp) / 1000);
+    updateStopwatchDisplay();
 
-  if (isStopwatchRunning) {
     document.getElementById('stopwatch-toggle-btn').textContent = '정지';
+
     stopwatchInterval = setInterval(() => {
-      stopwatchTime++;
+      stopwatchTime = Math.floor((Date.now() - stopwatchStartTimestamp) / 1000);
       updateStopwatchDisplay();
       saveStopwatchState();
     }, 1000);
   } else {
+    // 멈춘 상태일 때 저장된 시간 표시
+    updateStopwatchDisplay();
     document.getElementById('stopwatch-toggle-btn').textContent = '시작';
   }
-}
-
-function saveStopwatchState() {
-  localStorage.setItem('stopwatchTime', stopwatchTime);
-  localStorage.setItem('isStopwatchRunning', isStopwatchRunning);
 }
 
 function resetStopwatch() {
@@ -781,8 +798,12 @@ function resetStopwatch() {
   stopwatchTime = 0;
   document.getElementById('stopwatch-display').textContent = '00:00';
   document.getElementById('stopwatch-toggle-btn').textContent = '시작';
+  localStorage.removeItem('stopwatchTime');
+  localStorage.removeItem('isStopwatchRunning');
+  localStorage.removeItem('stopwatchStartTimestamp');
 }
- saveStopwatchState();
+
+
     // 타이머 부분 (기본 구조만)
    let timerInterval;
 let timerTime = 0;
@@ -796,23 +817,37 @@ function saveTimerState() {
 function loadTimerState() {
   const savedRunning = localStorage.getItem('isTimerRunning');
   const savedEndTime = localStorage.getItem('timerEndTime');
+  const savedTime = localStorage.getItem('timerTime');
 
   isTimerRunning = savedRunning === 'true';
 
   if (isTimerRunning && savedEndTime) {
-    const remaining = Math.floor((parseInt(savedEndTime) - Date.now()) / 1000);
+    const endTime = parseInt(savedEndTime);
+    const remaining = Math.floor((endTime - Date.now()) / 1000);
     timerTime = remaining > 0 ? remaining : 0;
+
+    updateTimerDisplay();
+
+    if (timerTime > 0) {
+      document.getElementById('timer-toggle-btn').textContent = '정지';
+      timerInterval = setInterval(() => {
+        timerTime--;
+        updateTimerDisplay();
+        saveTimerState();
+        if (timerTime <= 0) {
+          stopTimer(document.getElementById('timer-toggle-btn'));
+         showTimerAlert();
+        }
+      }, 1000);
+    } else {
+      stopTimer(document.getElementById('timer-toggle-btn'));
+    }
   } else {
-    const savedTime = localStorage.getItem('timerTime');
     timerTime = savedTime ? parseInt(savedTime) : 0;
-  }
-
-  updateTimerDisplay();
-
-  if (isTimerRunning && timerTime > 0) {
-    toggleTimer(document.getElementById('timer-toggle-btn'));
+    updateTimerDisplay();
   }
 }
+
 function updateTimerDisplay() {
   const h = String(Math.floor(timerTime / 3600)).padStart(2, '0');
   const m = String(Math.floor((timerTime % 3600) / 60)).padStart(2, '0');
@@ -830,7 +865,7 @@ function toggleTimer(button) {
     timerInterval = setInterval(() => {
       if (timerTime <= 0) {
         stopTimer(button);
-        alert('타이머 종료!');
+             showTimerAlert();
         return;
       }
       timerTime--;
@@ -857,6 +892,16 @@ function resetTimer() {
   updateTimerDisplay();
   saveTimerState();
   localStorage.removeItem('timerEndTime');
+}
+
+function showTimerAlert() {
+  const alertBox = document.getElementById('timer-alert');
+  alertBox.style.display = 'block';
+
+  // 3초 후 자동으로 사라지게
+  setTimeout(() => {
+    alertBox.style.display = 'none';
+  }, 3000);
 }
 
 function editTimer() {
@@ -931,11 +976,11 @@ function editTimer() {
 
     // 초기 렌더링
 document.addEventListener('DOMContentLoaded', () => {
+  loadStopwatchState();  // 스톱워치 상태 복구
+  loadTimerState();      // 타이머 상태 복구
   loadTodosFromStorage();
   renderWeekView();
   renderTodosForDate(currentDate);
-  loadStopwatchState();  // 스톱워치 상태 복구
-  loadTimerState();      // 타이머 상태 복구
 
   // 타이머 시간 텍스트 수정 감지
   document.getElementById('timer-editable').addEventListener('blur', () => {
