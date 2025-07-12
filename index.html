@@ -462,7 +462,7 @@
   <div class="container" id="page2">
     <div class="box box-clock">
       <h2>⏱️</h2>
-      <div class="time-display" id="stopwatch-display">00:00</div>
+      <div class="time-display" id="stopwatch-display">00:00:00</div>
       <button id="stopwatch-toggle-btn" onclick="toggleStopwatch(this)">시작</button>
       <button onclick="resetStopwatch()">리셋</button>
 
@@ -738,7 +738,7 @@ function updateStopwatchDisplay() {
   const hours = String(Math.floor(stopwatchTime / 3600)).padStart(2, '0');
   const minutes = String(Math.floor((stopwatchTime % 3600) / 60)).padStart(2, '0');
   const seconds = String(stopwatchTime % 60).padStart(2, '0');
-  document.getElementById('stopwatch-display').textContent = `${minutes}:${seconds}`;
+  document.getElementById('stopwatch-display').textContent = `${hours}:${minutes}:${seconds}`;
 }
 
 function toggleStopwatch(button) {
@@ -798,7 +798,7 @@ function resetStopwatch() {
   stopwatchInterval = null;
   isStopwatchRunning = false;
   stopwatchTime = 0;
-  document.getElementById('stopwatch-display').textContent = '00:00';
+  document.getElementById('stopwatch-display').textContent = '00:00:00';
   document.getElementById('stopwatch-toggle-btn').textContent = '시작';
   localStorage.removeItem('stopwatchTime');
   localStorage.removeItem('isStopwatchRunning');
